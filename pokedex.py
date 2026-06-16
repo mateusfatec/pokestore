@@ -366,21 +366,38 @@ def add_pokemon(d):
                 print("="*95)
       
         elif selecao == 3:
-            nome_b = input("Digite o nome EXATO do Pokémon para a Busca Binária: ")
+            elif selecao == 3:
+            print("\n" + "─"*40)
+            print("🔍 MÉTODOS DE BUSCA DISPONÍVEIS")
+            print("─"*40)
+            print(" [1] Busca Linear (Busca parcial: ex: 'char' acha 'Charmander')")
+            print(" [2] Busca Binária (Busca exata e rápida: exige nome completo)")
+            print("─"*40)
             
-    
+            opcao_busca = obter_int("Escolha o método de busca: ")
+            
             lista_preparada = []
             for id_p, dados in d.items():
                 lista_preparada.append([id_p, dados, dados[0]])
-        
-            if len(d) <= 100:
-                bubble_sort(lista_preparada)
+            
+            if opcao_busca == 1:
+                nome_b = input("Digite o nome (ou parte do nome) do Pokémon: ")
+                resultados = busca_linear(lista_preparada, nome_b)
+                exibir_resultados_busca(resultados)
+                
+            elif opcao_busca == 2:
+                nome_b = input("Digite o nome EXATO do Pokémon: ")
+                
+                # A busca binária exige ordenação prévia
+                if len(d) <= 100:
+                    bubble_sort(lista_preparada)
+                else:
+                    merge_sort(lista_preparada, 0, len(lista_preparada) - 1)
+                
+                resultados = busca_binaria(lista_preparada, nome_b)
+                exibir_resultados_busca(resultados)
             else:
-                merge_sort(lista_preparada, 0, len(lista_preparada) - 1)
-    
-            resultados = busca_binaria(lista_preparada, nome_b)
-        
-            exibir_resultados_busca(resultados)
+                print("[!] Opção de busca inválida.")
         elif selecao == 4:
             atualiza(d)
 
