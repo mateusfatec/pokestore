@@ -366,7 +366,6 @@ def add_pokemon(d):
                 print("="*95)
       
         elif selecao == 3:
-            elif selecao == 3:
             print("\n" + "─"*40)
             print("🔍 MÉTODOS DE BUSCA DISPONÍVEIS")
             print("─"*40)
