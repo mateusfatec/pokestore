@@ -20,10 +20,14 @@ def troca(L, i, j):
     L[i], L[j] = L[j], L[i]
 
 def empurra_maximo(L, n):
-    """Desloca o item máximo da lista L para o final (Ordem Crescente)."""
+    """Desloca o item máximo da lista L para o final (Baseado no Nome do Pokémon)."""
     i = 0
     while i < n-1:
-        if L[i][1][0].lower() > L[i+1][1][0].lower():
+        # Pega o nome do Pokémon dinamicamente dependendo do tamanho da estrutura
+        nome_atual = L[i][2].lower() if len(L[i]) > 2 else L[i][1][0].lower()
+        nome_proximo = L[i+1][2].lower() if len(L[i+1]) > 2 else L[i+1][1][0].lower()
+        
+        if nome_atual > nome_proximo:
             troca(L, i, i+1)
         i += 1
 
@@ -31,7 +35,10 @@ def empurra_minimo(L, n):
     """Desloca o item mínimo da lista L para o final (Ordem Decrescente)."""
     i = 0
     while i < n-1:
-        if L[i][1][0].lower() < L[i+1][1][0].lower():
+        nome_atual = L[i][2].lower() if len(L[i]) > 2 else L[i][1][0].lower()
+        nome_proximo = L[i+1][2].lower() if len(L[i+1]) > 2 else L[i+1][1][0].lower()
+        
+        if nome_atual < nome_proximo:
             troca(L, i, i+1)
         i += 1
 
@@ -53,7 +60,10 @@ def mescla(L, i, m, f):
     j = m + 1
 
     while k <= m and j <= f:
-        if L[k][1][0].lower() <= L[j][1][0].lower():
+        nome_k = L[k][2].lower() if len(L[k]) > 2 else L[k][1][0].lower()
+        nome_j = L[j][2].lower() if len(L[j]) > 2 else L[j][1][0].lower()
+        
+        if nome_k <= nome_j:
             T.append(L[k])
             k += 1
         else:
@@ -149,10 +159,9 @@ def atualiza(d):
         print('='*40)
     else:
         id_atualizar = int(input("Digite o ID do Pokémon que deseja editar: "))
-                
+            
         if id_atualizar in d:
-                
-            nome = d[id_atualizar]
+            nome = d[id_atualizar][0]
                     
             print(f"\n📢 Pokémon Selecionado: {nome}")
             print("─" * 40)
@@ -176,10 +185,9 @@ def atualiza(d):
                 d[id_atualizar][1] = novo_tipo
 
             elif escolha == 3:
-                resp_shine = input("Novo status Shine (sim/nao): ").lower()
-                if resp_shine == "sim": resp_shine == True
-                else: resp_shine == False
-                d[id_atualizar][2] = resp_shine
+                resp_shine = input("Novo status Shine (sim/nao): ").lower().strip()
+                # CORREÇÃO: Removido '==' e adicionado '=' para atribuição correta
+                d[id_atualizar][2] = True if resp_shine == "sim" else False
 
             elif escolha == 4:
                 novo_natureza = input("Qual a nova natureza? ")
@@ -196,40 +204,55 @@ def atualiza(d):
             else:
                 print("\n[!] Opção inválida. Nenhuma alteração foi feita.")
                 print('='*40)
+                return
                 
-            if escolha > 0 and escolha < 7:
+            if 0 < escolha < 7:
                 print(f"\n[✓] Sucesso: Dado modificado na memória RAM!")
                 print('='*40)
 
-def busca_linear(d, nome_busca):
-    """Busca direta no dicionário por correspondência de nome."""
+def busca_linear(L, nome_busca):
+    """Busca direta na lista preparada por correspondência parcial de nome."""
     encontrados = []
-    for id_p, dados in d.items():
-        if nome_busca.lower() in dados[0].lower():
+    for item in L:
+        id_p, dados, nome_isolado = item
+        if nome_busca.lower() in nome_isolado.lower():
             encontrados.append((id_p, dados))
     return encontrados        
 
+def exibir_resultados_busca(resultados):
+    """Recebe a lista de encontrados da busca e exibe em formato de tabela."""
+    if not resultados:
+        print("\n[!] Nenhum Pokémon foi encontrado com esse termo.")
+        return
+
+    print("\n" + "="*85)
+    print(f"{'🔍 RESULTADOS ENCONTRADOS NA BUSCA':^85}")
+    print("="*85)
+    print(f"{'ID':<6} | {'Nome':<15} | {'Tipo':<12} | {'Shine':<6} | {'Natureza':<12} | {'Preço':<12} | {'Quantidade':<10}")
+    print("-" * 85)
+
+    for item in resultados:
+        id_p, dados_p = item
+        nome, tipo, shine, natureza, preco, qtd = dados_p
+        status_shine = "Sim" if shine else "Não"
+        print(f"{id_p:<6} | {nome:<15} | {tipo:<12} | {status_shine:<6} | {natureza:<12} | R$ {preco:<9.2f} | {qtd:<10}")
+
+    print("="*85)
+
 def busca_binaria(L, nome_busca):
-    """
-    Busca um Pokémon pelo nome exato em uma lista ordenada de forma CRESCENTE.
-    Estrutura de cada item em L: [ID, [dados_completos], Nome_Isolado]
-    """
+    """Busca um Pokémon pelo nome exato em uma lista previamente ordenada."""
     inicio = 0
     fim = len(L) - 1
     nome_busca = nome_busca.lower().strip()
     
     while inicio <= fim:
         meio = (inicio + fim) // 2
-       
         nome_atual = L[meio][2].lower()
-    
+        
         if nome_atual == nome_busca:
-         
-            return [ (L[meio][0], L[meio][1]) ]
-            
+            return [(L[meio][0], L[meio][1])]
         elif nome_atual < nome_busca:
             inicio = meio + 1
-            
         else:
             fim = meio - 1
             
@@ -243,71 +266,58 @@ def remover(d):
         if id_remover in d:
             nome_pokemon = d[id_remover][0]
             del d[id_remover]
-            print(f"\n Pokémon: {nome_pokemon} ID: {id_remover} removido com sucesso!")
-    
+            print(f"\n[✓] Pokémon: {nome_pokemon} ID: {id_remover} removido com sucesso!")
+        else:
+            print("\n[!] ID não encontrado.")
 
 def salva_inventario(d):
-    arquivo = open("inventario.csv", "w", encoding="utf-8")
-    for id_pokemon, dados in d.items():
-        nome, tipo, shine, natureza, preco, qtd = dados
-        
-        id_cifrado = cifra_cesar(str(id_pokemon))
-        nome_cifrado = cifra_cesar(str(nome))
-        tipo_cifrado = cifra_cesar(str(tipo))
-        shine_cifrado = cifra_cesar(str(shine))
-        natureza_cifrado = cifra_cesar(str(natureza))
-        preco_cifrado = cifra_cesar(str(preco))
-        qtd_cifrado = cifra_cesar(str(qtd))
-        
-        linha = f"{id_cifrado};{nome_cifrado};{tipo_cifrado};{shine_cifrado};{natureza_cifrado};{preco_cifrado};{qtd_cifrado}\n"
-        arquivo.write(linha)
-    
-    arquivo.close()
+    with open("inventario.csv", "w", encoding="utf-8") as arquivo:
+        for id_pokemon, dados in d.items():
+            nome, tipo, shine, natureza, preco, qtd = dados
+            
+            id_cifrado = cifra_cesar(str(id_pokemon))
+            nome_cifrado = cifra_cesar(str(nome))
+            tipo_cifrado = cifra_cesar(str(tipo))
+            shine_cifrado = cifra_cesar(str(shine))
+            natureza_cifrado = cifra_cesar(str(natureza))
+            preco_cifrado = cifra_cesar(str(preco))
+            qtd_cifrado = cifra_cesar(str(qtd))
+            
+            linha = f"{id_cifrado};{nome_cifrado};{tipo_cifrado};{shine_cifrado};{natureza_cifrado};{preco_cifrado};{qtd_cifrado}\n"
+            arquivo.write(linha)
     print("\n[✓] Inventário criptografado e salvo com sucesso!")
 
 def carrega_inventario():
     pokedex = {}
-
     try:
-        arquivo = open("inventario.csv", "r", encoding="utf-8")
+        with open("inventario.csv", "r", encoding="utf-8") as arquivo:
+            for linha in arquivo:
+                linha = linha.strip()
+                if linha:
+                    dados_cifrados = linha.split(";")
+                    try:
+                        id_pokemon = int(decifra_cesar(dados_cifrados[0]))
+                        nome = decifra_cesar(dados_cifrados[1])
+                        tipo = decifra_cesar(dados_cifrados[2])
+                        status_shine = decifra_cesar(dados_cifrados[3])
+                        shine = True if status_shine == "True" else False
+                        natureza = decifra_cesar(dados_cifrados[4])
+                        preco = float(decifra_cesar(dados_cifrados[5]))
+                        qtd = int(decifra_cesar(dados_cifrados[6]))
 
-        for linha in arquivo:
-            linha = linha.strip()
-
-            if linha:
-                dados_cifrados = linha.split(";")
-
-                try:
-                    id_pokemon = int(decifra_cesar(dados_cifrados[0]))
-                    nome = decifra_cesar(dados_cifrados[1])
-                    tipo = decifra_cesar(dados_cifrados[2])
-                    
-                    status_shine = decifra_cesar(dados_cifrados[3])
-                    shine = True if status_shine == "True" else False
-
-                    natureza = decifra_cesar(dados_cifrados[4])
-                    preco = float(decifra_cesar(dados_cifrados[5]))
-                    qtd = int(decifra_cesar(dados_cifrados[6]))
-
-                    pokedex[id_pokemon] = [nome, tipo, shine, natureza, preco, qtd]
-                
-                except (ValueError, IndexError):
-                    continue
-
-        arquivo.close()
-
+                        pokedex[id_pokemon] = [nome, tipo, shine, natureza, preco, qtd]
+                    except (ValueError, IndexError):
+                        continue
     except FileNotFoundError:
         print("\n[!] Arquivo 'inventario.csv' não encontrado.")
         opcao = input("Deseja criar um novo inventário vazio? (sim/nao): ").lower()
         if opcao != "sim":
             print("Encerrando o programa para ajuste do arquivo...")
             exit()
-
     return pokedex
 
 def add_pokemon(d):
     while True:
-        
         print('\n' + '='*40)
         print(f"{'SISTEMA DE GESTÃO - POKÉDEX':^40}")
         print('='*40)
@@ -327,27 +337,31 @@ def add_pokemon(d):
             continue
 
         if selecao == 1:
-            id_digitado = int(input('Digite o id do pokemon '))
-            if id_digitado in d:
-                print('Erro ja existe o pokemon cadastrado')
-            else:
-                nome = input('Qual o pokemon: ')
-                
-                tipo = input('Qual o tipo: ')
-                shine = bool(input('Shine (sim/nao): '))
-                natureza = input('Qual a natureza: ')
-                preco = float(input(f'Qual o valor do {nome}: '))
-                qtd = int(input(f'Quantos {nome} têm: '))
-                d[id_digitado] = [nome,tipo,shine,natureza,preco,qtd]
+            try:
+                id_digitado = int(input('Digite o id do pokemon: '))
+                if id_digitado in d:
+                    print('[!] Erro: Já existe um Pokémon cadastrado com esse ID.')
+                else:
+                    nome = input('Qual o pokemon: ').strip()
+                    tipo = input('Qual o tipo: ').strip()
+                    # CORREÇÃO: bool(input()) corrigido para ler strings sim/nao corretamente
+                    resp_shine = input('Shine (sim/nao): ').lower().strip()
+                    shine = True if resp_shine == "sim" else False
+                    
+                    natureza = input('Qual a natureza: ').strip()
+                    preco = float(input(f'Qual o valor do {nome}: R$ '))
+                    qtd = int(input(f'Quantos {nome} têm no estoque: '))
+                    
+                    d[id_digitado] = [nome, tipo, shine, natureza, preco, qtd]
+                    print(f"\n[✓] {nome} adicionado com sucesso!")
+            except ValueError:
+                print("\n[!] Erro nos tipos de dados informados (ID, Preço e Quantidade precisam ser numéricos).")
     
         elif selecao == 2:
             if not d:
                 print("\n[!] A Pokédex está vazia no momento.")
             else:
-                # Transforma o dicionário em lista de tuplas para ordenar por nome: [(id, [dados]), ...]
                 lista_ordenada = list(d.items())
-                
-                # Escolha automática do algoritmo conforme a quantidade de itens
                 if len(lista_ordenada) <= 100:
                     bubble_sort(lista_ordenada, crescente=True)
                 else:
@@ -364,8 +378,12 @@ def add_pokemon(d):
                     status_shine = "Sim" if shine else "Não"
                     print(f"{id_p:<6} | {nome:<15} | {tipo:<12} | {status_shine:<6} | {natureza:<12} | R$ {preco:<9.2f} | {qtd:<10}")
                 print("="*95)
-      
+
         elif selecao == 3:
+            if not d:
+                print("\n[!] A Pokédex está vazia. Não há o que buscar.")
+                continue
+                
             print("\n" + "─"*40)
             print("🔍 MÉTODOS DE BUSCA DISPONÍVEIS")
             print("─"*40)
@@ -373,7 +391,11 @@ def add_pokemon(d):
             print(" [2] Busca Binária (Busca exata e rápida: exige nome completo)")
             print("─"*40)
             
-            opcao_busca = int(input("Escolha o método de busca: "))
+            try:
+                opcao_busca = int(input("Escolha o método de busca: "))
+            except ValueError:
+                print("[!] Digite apenas o número da opção.")
+                continue
             
             lista_preparada = []
             for id_p, dados in d.items():
@@ -387,8 +409,8 @@ def add_pokemon(d):
             elif opcao_busca == 2:
                 nome_b = input("Digite o nome EXATO do Pokémon: ")
                 
-                # A busca binária exige ordenação prévia
-                if len(d) <= 100:
+                # CORREÇÃO: Agora os algoritmos de ordenação tratam a lista_preparada de forma correta
+                if len(lista_preparada) <= 100:
                     bubble_sort(lista_preparada)
                 else:
                     merge_sort(lista_preparada, 0, len(lista_preparada) - 1)
@@ -396,7 +418,8 @@ def add_pokemon(d):
                 resultados = busca_binaria(lista_preparada, nome_b)
                 exibir_resultados_busca(resultados)
             else:
-                print("[!] Opção de busca inválida.")
+                print("[!] Opção de busca inválida.")  
+        
         elif selecao == 4:
             atualiza(d)
 
@@ -418,7 +441,7 @@ def add_pokemon(d):
                 novo_usuario_hash = hashlib.sha256(novo_usuario.encode()).hexdigest()
                 nova_senha_hash = hashlib.sha256(nova_senha.encode()).hexdigest()
                 
-                with open("login.txt", "w") as atualizar_login:
+                with open("login.txt", "w", encoding="utf-8") as atualizar_login:
                     atualizar_login.write(f"{novo_usuario_hash}\n{nova_senha_hash}")
                 
                 print("\n[✓] Usuário e senha alterados com sucesso!")
@@ -429,11 +452,8 @@ def add_pokemon(d):
             print('\n[✓] Alterações gravadas com sucesso!')
             return
 
-
-
 def main():
     logado = False
-
     while not logado:
         print("\n" + "="*40)
         print(f"{' BEM-VINDO AO SISTEMA POKÉDEX':^40}")
