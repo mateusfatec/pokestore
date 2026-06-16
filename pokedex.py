@@ -373,7 +373,7 @@ def add_pokemon(d):
             print(" [2] Busca Binária (Busca exata e rápida: exige nome completo)")
             print("─"*40)
             
-            opcao_busca = obter_int("Escolha o método de busca: ")
+            opcao_busca = int(input("Escolha o método de busca: "))
             
             lista_preparada = []
             for id_p, dados in d.items():
