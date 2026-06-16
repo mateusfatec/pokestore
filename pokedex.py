@@ -209,6 +209,32 @@ def busca_linear(d, nome_busca):
             encontrados.append((id_p, dados))
     return encontrados        
 
+def busca_binaria(L, nome_busca):
+    """
+    Busca um Pokémon pelo nome exato em uma lista ordenada de forma CRESCENTE.
+    Estrutura de cada item em L: [ID, [dados_completos], Nome_Isolado]
+    """
+    inicio = 0
+    fim = len(L) - 1
+    nome_busca = nome_busca.lower().strip()
+    
+    while inicio <= fim:
+        meio = (inicio + fim) // 2
+       
+        nome_atual = L[meio][2].lower()
+    
+        if nome_atual == nome_busca:
+         
+            return [ (L[meio][0], L[meio][1]) ]
+            
+        elif nome_atual < nome_busca:
+            inicio = meio + 1
+            
+        else:
+            fim = meio - 1
+            
+    return []
+
 def remover(d):
     if not d:
         print("\n[!] A Pokédex está vazia. Nada para remover.")
@@ -338,9 +364,23 @@ def add_pokemon(d):
                     status_shine = "Sim" if shine else "Não"
                     print(f"{id_p:<6} | {nome:<15} | {tipo:<12} | {status_shine:<6} | {natureza:<12} | R$ {preco:<9.2f} | {qtd:<10}")
                 print("="*95)
+      
         elif selecao == 3:
-            nome_busca = input("Digite o nome do Pokémon: ")   
+            nome_b = input("Digite o nome EXATO do Pokémon para a Busca Binária: ")
+            
+    
+            lista_preparada = []
+            for id_p, dados in d.items():
+                lista_preparada.append([id_p, dados, dados[0]])
         
+            if len(d) <= 100:
+                bubble_sort(lista_preparada)
+            else:
+                merge_sort(lista_preparada, 0, len(lista_preparada) - 1)
+    
+            resultados = busca_binaria(lista_preparada, nome_b)
+        
+            exibir_resultados_busca(resultados)
         elif selecao == 4:
             atualiza(d)
 
